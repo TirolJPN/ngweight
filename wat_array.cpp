@@ -20,6 +20,7 @@
 #include <queue>
 #include <algorithm>
 #include "wat_array.hpp"
+#include <math.h>
 
 using namespace std;
 
