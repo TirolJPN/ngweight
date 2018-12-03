@@ -8,7 +8,10 @@ ngweightに入力するためのファイルを用意する
 import os
 import mysql.connector as cn
 from pyquery import PyQuery as pq
-from enum import Enum
+from enum import  Enum
+import re
+import subprocess
+import sys
 
 # グローバル変数
 cnx = cn.connect(
@@ -22,13 +25,13 @@ cur = cnx.cursor(buffered=True, dictionary=True)
 
 path_feature_word_vectors = r'../input_files/'
 path_src = r'./../../Database/src_original/src_original/'
+path_input_files = r'./../input_files/'
+path_output_files = r'./../output_files/'
 
 
-
-
-
-
-
+"""
+code from http://maku77.github.io/python/io/remove-java-comments.html
+"""
 class State(Enum):
     CODE = 1
     C_COMMENT = 2
@@ -109,7 +112,9 @@ verdictがOKとなっているソースコードのみ対象
 """
 def get_right_answers(problem_id):
         global cur
-        sql = "SELECT * FROM File WHERE problem_id LIKE \"%s\" AND verdict = \"OK\"" % problem_id
+        lang_list = ['GNU C++14', 'GNU C++11', 'GNU C++']
+        lang_select = '(%s)' % ' or '.join(["lang='%s'" % lang for lang in lang_list])
+        sql = "SELECT * FROM File WHERE problem_id LIKE \"%s\" AND verdict = \"OK\" AND %s" % (problem_id, lang_select)
         cur.execute(sql)
         return cur.fetchall()
 
@@ -128,9 +133,20 @@ def create_an_file_for_ngweight(problem_id):
                                 path_answer = path_src +  answer['file_name']
                                 with open(path_answer, mode='r', encoding='utf-8') as f_src:
                                         code_content = f_src.read()
+                                # ヘッダーにファイル名を入れておく
                                 f_ngweight.write(chr(2))
-                                f_ngweight.write(filter_cpp_comment(code_content))
+                                f_ngweight.write(answer['file_name'])
                                 f_ngweight.write(chr(3))
+                                s = filter_cpp_comment(code_content)
+                                # 特殊記号をとりあえず空白に変換する
+                                processed_s = re.sub("\!|\?|\"|\'|#|\$|%|&|\||\(|\)|\{|\}|\[|\]|=|<|>|\+|-|\*|\/|\\|\~|\^|@|:|;|,|\.|\s+", " ", s)
+                                # 上記置換だと、改行・スペースのスペース変換による連続スペースが残るので、それらも一つのスペースにする
+                                processed_s = re.sub(r" +", " ", processed_s)
+                                f_ngweight.write(processed_s)
+                # pythonスクリプトからngweightを直接実行し、出力ファイルを得る
+                cmd = "../bin/default/ngweight -w -s 0 < ../input_files/%s.txt > ../output_files/%s_output" % (problem_id, problem_id)
+                res = subprocess.run([cmd], stdout=subprocess.PIPE, shell=True)
+                sys.stdout.buffer.write(res.stdout)
 
 
 
