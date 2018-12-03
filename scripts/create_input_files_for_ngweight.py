@@ -8,6 +8,7 @@ ngweightに入力するためのファイルを用意する
 import os
 import mysql.connector as cn
 from pyquery import PyQuery as pq
+from enum import Enum
 
 # グローバル変数
 cnx = cn.connect(
@@ -19,8 +20,86 @@ cnx = cn.connect(
 )
 cur = cnx.cursor(buffered=True, dictionary=True)
 
-path_feature_word_vectors = r'./'
-path_src = r'./'
+path_feature_word_vectors = r'../input_files/'
+path_src = r'./../../Database/src_original/src_original/'
+
+
+
+
+
+
+
+class State(Enum):
+    CODE = 1
+    C_COMMENT = 2
+    CPP_COMMENT = 3
+    STRING_LITERAL = 4
+
+def filter_cpp_comment(text):
+    """ Removes Java (C/C++) style comments from text. """
+    result = []  # filtered text (char array)
+    prev = ''  # previous char
+    prevprev = ''  # previous previous char
+    state = State.CODE
+
+    for ch in text:
+        # Skip to the end of C-style comment
+        if state == State.C_COMMENT:
+            if prevprev != '\\' and prev == '*' and ch == '/':  # End comment
+                state = State.CODE
+                prevprev = prev = ''
+            elif ch == '\n':
+                result.append('\n')
+                prevprev = prev = ''
+            else:
+                prevprev, prev = prev, ch
+            continue
+
+        # Skip to the end of the line (C++ style comment)
+        if state == State.CPP_COMMENT:
+            if ch == '\n':  # End comment
+                state = State.CODE
+                result.append('\n')
+                prevprev = prev = ''
+            continue
+
+        # Skip to the end of the string literal
+        if state == State.STRING_LITERAL:
+            if prev != '\\' and ch == '"':  # End literal
+                state = State.CODE
+            result.append(prev)
+            prevprev, prev = prev, ch
+            continue
+
+        # Starts C-style comment?
+        if prevprev != '\\' and prev == '/' and ch == '*':
+            state = State.C_COMMENT
+            prevprev = prev = ''
+            continue
+
+        # Starts C++ style comment?
+        if prevprev != '\\' and prev == '/' and ch == '/':
+            state = State.CPP_COMMENT
+            prevprev = prev = ''
+            continue
+
+        # Comment has not started yet
+        if prev: result.append(prev)
+
+        # Starts string literal?
+        if ch == '"':
+            state = State.STRING_LITERAL
+        prevprev, prev = prev, ch
+
+    # Returns filtered text
+    if prev: result.append(prev)
+    return ''.join(result)
+
+
+
+
+
+
 
 
 """
@@ -30,7 +109,7 @@ verdictがOKとなっているソースコードのみ対象
 """
 def get_right_answers(problem_id):
         global cur
-        sql = "SELECT * FROM File WHERE problem_id = %s AND verdict = OK" % problem_id
+        sql = "SELECT * FROM File WHERE problem_id LIKE \"%s\" AND verdict = \"OK\"" % problem_id
         cur.execute(sql)
         return cur.fetchall()
 
@@ -43,15 +122,15 @@ def create_an_file_for_ngweight(problem_id):
         # 入力ファイルがまだ作成されていなければ実行する
         if not os.path.isfile(path_file):
                 answers = get_right_answers(problem_id)
-                with open(path_file, mode='w', encording = 'utf-8') as f_ngweight:
-                        for answer in answer:
+                with open(path_file, mode='w', encoding='utf-8') as f_ngweight:
+                        for answer in answers:
                                 # 各解答のソースコードをngweight用のテキストファイルに追記していく
-                                path_answer = path_src + answer['submission_id'] + '.src'
-                                with open(path_answer, mode='r', encording='utf-8') as f_src:
+                                path_answer = path_src +  answer['file_name']
+                                with open(path_answer, mode='r', encoding='utf-8') as f_src:
                                         code_content = f_src.read()
-                                f_ngweight.write(ord(2))
-                                f_ngweight.write(code_content)
-                                f_ngweight.write(ord(3))
+                                f_ngweight.write(chr(2))
+                                f_ngweight.write(filter_cpp_comment(code_content))
+                                f_ngweight.write(chr(3))
 
 
 
