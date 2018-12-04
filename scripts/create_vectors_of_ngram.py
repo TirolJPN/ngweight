@@ -12,6 +12,8 @@ pythonにおける階層クラスタリングは次を参照 https://qiita.com/s
     0x02[file_name]0x03 {単語群} 0x02[file_name]0x03 {単語群} 0x02[file_name]0x03 {単語群}...
     の形式になっているので、0x02[file_name]0x03を区切りに、1解答づつの文章を取得
 2. output_filesの特徴語のリストと照らし合わせて、特徴語の種類(outputfileの行数と同じ)の次元を持つ特徴ベクトルを作成
+    文字列検索をN-gramの種類だけやるので相当時間かかりそう 
+    ベクトルはCSVの方が良い(ioの数を少なくするため。縦軸がファイル名、横軸が、N-gramの項目を取る)
 """
 
 import os
@@ -32,12 +34,31 @@ cnx = cn.connect(
 )
 cur = cnx.cursor(buffered=True, dictionary=True)
 
+path_src = r'./../../Database/src_original/src_original/'
+path_input_files = r'./../input_files/'
+path_output_files = r'./../output_files/'
+
 
 """
-problem_idを引数として、前解答の特徴ベクトルを作成する
+problem_idを引数として、output_filesの特徴語一覧を取得してくる
+どの形式で返そうかな
+"""
+def get_keywords_list(problem_id):
+    path_output_file = path_output_files + problem_id + '_output'
+    # ファイルが存在すれば、N-gramの一覧を取得する
+    if os.path.isfile(path_output_file):
+        with open(path_output_file, mode='w', encoding='utf-8') as f_output_file:
+            # output_file から一行ずつ取得する
+            keyword_row = f_output_file.readline()
+            
+
+"""
+problem_idを引数として、前解答の特徴ベクトルの情報を持つCSVファイルを作成する
 """
 def create_key_word_vectors(problem_id):
-
+    global cur
+    # まず、特徴語一覧のファイルから、特徴語の一覧を取得してくる(そのままループを回す?)
+    get_keywords_list(problem_id)
 
 
 """
