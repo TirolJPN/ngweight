@@ -64,8 +64,32 @@ def get_keywords_list(problem_id):
 
 
 """
-problem_idを引数にして
+problem_id、N-gramのリスト、出力csvファイルのファイルポインタを引数にして、該当解答の一覧を返す
+ソースコードはinput_filesの解答を利用する
+
+0x02[ファイル名]0x03[本文]0x02[ファイル名]0x03[本文]0x02[ファイル名]0x03[本文]...
+
+の状態になっているので、それで、分割する
 """
+def get_keyword_vectors(problem_id, n_gram_list, writer):
+    input_file_path = path_input_files + problem_id + '.txt'
+    # ファイルが存在するならば
+    if os.path.isfile(input_file_path):
+        with open(input_file_path, 'r', encoding='utf-8') as f_input_file:
+            code_contents = f_input_file.read()
+        splited_code_contents = code_contents.split(chr(2))
+        for splited_code_content in splited_code_contents:
+            tmp = splited_code_content.split(chr(3))
+            print(tmp)
+            file_name = tmp[0]
+            code = tmp[1]
+            # n-gramごとに探索する
+            n_gram_count_list = [file_name]
+            for n_gram in n_gram_list:
+                count = code.count(n_gram)
+                n_gram_count_list.append(count)
+            writer.writerow(n_gram_count_list)
+
             
 
 """
@@ -85,9 +109,6 @@ def create_key_word_vectors(problem_id):
             writer.writerow(keywords_list)
 
             # 各提出毎にN-Gramをカウントし、csvに入れる
-
-
-
 
 
 
