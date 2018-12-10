@@ -71,16 +71,15 @@ problem_id、N-gramのリスト、出力csvファイルのファイルポイン�
 
 の状態になっているので、それで、分割する
 """
-def get_keyword_vectors(problem_id, n_gram_list, writer):
+def create_keyword_vectors(problem_id, n_gram_list, writer):
     input_file_path = path_input_files + problem_id + '.txt'
     # ファイルが存在するならば
     if os.path.isfile(input_file_path):
         with open(input_file_path, 'r', encoding='utf-8') as f_input_file:
             code_contents = f_input_file.read()
-        splited_code_contents = code_contents.split(chr(2))
+        splited_code_contents = [i for i in re.split(chr(2), code_contents ) if i != '']
         for splited_code_content in splited_code_contents:
             tmp = splited_code_content.split(chr(3))
-            print(tmp)
             file_name = tmp[0]
             code = tmp[1]
             # n-gramごとに探索する
@@ -107,8 +106,10 @@ def create_key_word_vectors(problem_id):
             writer = csv.writer(f_csv_file, lineterminator='\n')
             keywords_list.insert(0, 'submission_id')
             writer.writerow(keywords_list)
+            keywords_list.pop(0)
 
             # 各提出毎にN-Gramをカウントし、csvに入れる
+            create_keyword_vectors(problem_id, keywords_list, writer)
 
 
 
