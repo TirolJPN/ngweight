@@ -12,7 +12,10 @@ import subprocess
 import sys
 import csv
 import pandas as pd
+import copy
 import matplotlib.pyplot as plt
+import sys
+sys.setrecursionlimit(100000)
 # from pandas.tools import plotting
 from pandas.plotting import scatter_matrix
 from scipy.cluster.hierarchy import linkage, dendrogram
@@ -40,19 +43,24 @@ path_plot_results = r'./../plot_results/'
 def exec_cluster(problem_id):
     path_csv_file = path_vector_files + problem_id + '.csv'
     df = pd.read_csv(path_csv_file, delimiter=",", )
-    length_culumns = len(df.columns) 
+    length_culumns = len(df.columns)
+    # print('num of % nodes : %' % (problem_id ,str(length_culumns)) )
     # scatter_matrix(df[df.columns[1:length_culumns]], figsize=(6,6), alpha=0.8, diagonal='kde')
     # クラスタリング結果にかなり偏りがある
     # 全パターンで試す
 
 
 
-
     metrics = ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'euclidean', 'hamming', 'jaccard']
-    methods = ['single', 'average', 'complete', 'weighted']
+    normal_methods = ['single', 'average', 'complete', 'weighted']
+    euclidean_methods = ['single', 'average', 'complete', 'weighted', 'centroid', 'median', 'ward']
     
-    for method in methods:
-        for metric in metrics:
+    for metric in metrics:
+        if metric != 'euclidean':
+            methods = normal_methods
+        else:
+            methods = euclidean_methods
+        for method in methods:
             # 階層クラスタリングを行い、プロット
             result = linkage(df.iloc[:,1:length_culumns],
                             metric = metric,
@@ -62,7 +70,7 @@ def exec_cluster(problem_id):
             plt.ylabel("Threshold")
 
             # plot_file_name = path_plot_results + problem_id + '.png'
-            plot_file_name = '%s%s/%s/%s.png' % (path_plot_results, method, metric, problem_id)
+            plot_file_name = '%s%s/%s/%s.png' % (path_plot_results, metric, method, problem_id)
             plt.savefig(plot_file_name, dpi = 300)
             plt.clf()
 
@@ -70,18 +78,23 @@ def exec_cluster(problem_id):
 
 def make_directories():
     metrics = ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'euclidean', 'hamming', 'jaccard']
-    methods = ['single', 'average', 'complete', 'weighted']
-    for method in methods:
-        for metric in metrics:
-            plot_file_name = '%s%s/%s/' % (path_plot_results, method, metric)
+    normal_methods = ['single', 'average', 'complete', 'weighted']
+    euclidean_methods = ['single', 'average', 'complete', 'weighted', 'centroid', 'median', 'ward']
+    for metric in metrics:
+        if metric != 'euclidean':
+            methods = normal_methods
+        else:
+            methods = euclidean_methods
+        for method in methods:
+            plot_file_name = '%s%s/%s/' % (path_plot_results, metric, method)
             if not os.path.exists(plot_file_name):
                 os.makedirs(plot_file_name)
 
 
 def get_problem_list():
     global cur
-    # sql = r'SELECT * FROM Problem WHERE competition_id = 733 OR competition_id = 633;';
-    sql = r'SELECT * FROM Problem WHERE  competition_id = 633;';
+    sql = r'SELECT * FROM Problem WHERE competition_id = 733 OR competition_id = 633;';
+    # sql = r'SELECT * FROM Problem WHERE  competition_id = 633;';
     cur.execute(sql)
     return cur.fetchall()
     
