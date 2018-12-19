@@ -21,6 +21,8 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 import numpy as np
 from scipy.cluster.hierarchy import fcluster
 
+sys.setrecursionlimit(10000)
+
 # グローバル変数
 cnx = cn.connect(
     host='127.0.0.1',
@@ -99,14 +101,22 @@ def exec_cluster(problem_id):
                             metric = metric,
                             method = method)
             # dendrogram(result)
-            fancy_dendrogram(
+            # fancy_dendrogram(
+            #     result,
+            #     truncate_mode='lastp',  # show only the last p merged clusters
+            #     p=20,  # show only the last p merged clusters
+            #     leaf_rotation=90.,
+            #     leaf_font_size=12.,
+            #     show_contracted=True,  # to get a distribution impression in truncated branches
+            #     annotate_above=10,  # useful in small plots so annotations don't overlap
+            # )
+            dendrogram(
                 result,
                 truncate_mode='lastp',  # show only the last p merged clusters
                 p=20,  # show only the last p merged clusters
                 leaf_rotation=90.,
                 leaf_font_size=12.,
                 show_contracted=True,  # to get a distribution impression in truncated branches
-                annotate_above=10,  # useful in small plots so annotations don't overlap
             )
             # fcluster()で、クラスタ数指定でクラスタ分類する
             cluster_index = fcluster(result, num_clusters, criterion='maxclust')
