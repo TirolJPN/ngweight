@@ -111,7 +111,6 @@ def get_right_answers(problem_id):
     sql = "SELECT * FROM File WHERE problem_id LIKE \"%s\" AND verdict = \"OK\" AND %s" % (problem_id, lang_select)
     cur.execute(sql)
     return cur.fetchall()
-
 """
 problem_idを引数として、ngweight用の1つの入力ファイルを作成する
 """
@@ -149,7 +148,7 @@ ngweightに入力するファイルを用意する問題のid一覧を返す
 """
 def get_problem_list():
     global cur
-    sql = r'SELECT * FROM Problem WHERE competition_id = 733 OR competition_id = 633;';
+    sql = r'SELECT * FROM Problem WHERE competition_id = 727;';
     cur.execute(sql)
     return cur.fetchall()
 

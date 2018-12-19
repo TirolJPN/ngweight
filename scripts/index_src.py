@@ -77,7 +77,7 @@ def copy_src(problem_id):
 def get_problems():
     global cur
     # sql = r'SELECT * FROM Problem WHERE competition_id = 733 OR competition_id = 633;';
-    sql = r'SELECT * FROM Problem WHERE  competition_id = 633;'
+    sql = r'SELECT * FROM Problem WHERE competition_id = 727;'
     cur.execute(sql)
     return cur.fetchall()
 
