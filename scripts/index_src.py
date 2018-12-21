@@ -61,7 +61,7 @@ def copy_src(problem_id):
         f = csv.reader(csv_file, delimiter=",",  lineterminator='\n')
         header = next(f)
         row_count = 0
-        for row in f:
+        for row in header:
             src_name = row[0]
             for metric in metrics:
                 for method in methods:
@@ -90,7 +90,7 @@ def make_directory(problem_id):
     for cluster in clusters:
         for metric in metrics:
             for method in methods:
-                path_cluster = '%s/%s/%s/%s/%s'% (path_indexed_src, problem_id, metric, method, str(cluster))
+                path_cluster = '%s%s/%s/%s/%s'% (path_indexed_src, problem_id, metric, method, str(cluster))
                 if not os.path.exists(path_cluster):
                     os.makedirs(path_cluster)
 
