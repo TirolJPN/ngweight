@@ -72,8 +72,10 @@ def fancy_dendrogram(*args, **kwargs):
 def exec_cluster(problem_id):
     global num_clusters
 
-    metrics = ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'euclidean', 'hamming', 'jaccard']
-    normal_methods = ['single', 'average', 'complete', 'weighted']
+    # metrics = ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'euclidean', 'hamming', 'jaccard']
+    metrics = ['cosine']
+    # normal_methods = ['single', 'average', 'complete', 'weighted']
+    normal_methods = ['complete', 'weighted']
     euclidean_methods = ['single', 'average', 'complete', 'weighted', 'centroid', 'median', 'ward']
 
     path_csv_file = path_vector_files + problem_id + '.csv'
