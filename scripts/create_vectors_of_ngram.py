@@ -29,7 +29,7 @@ import csv
 cnx = cn.connect(
     host='127.0.0.1',
     user='kosuke',
-    password='khkh5813',
+    password='localhost',
     port='3306',
     database='codeforces'
 )
