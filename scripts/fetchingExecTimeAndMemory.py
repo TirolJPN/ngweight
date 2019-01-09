@@ -25,9 +25,13 @@ class Connector:
     secret = '8450cfaa0bafeafa8659e08f25a91470f86d4dc7'
 
     
-    def execSqlStatement(self, sql):
+    def execSelectSqlStatement(self, sql):
         Connector.cur.execute(sql)
         return Connector.cur.fetchall()
+
+    def execInsertSqlStatement(self, sql):
+        Connector.cur.execute(sql)
+        Connector.cnx.commit()
 
 """
 各problem_id毎にインスタンスを生成する
@@ -42,19 +46,31 @@ class Problem(Connector):
     def __init__(self, competition_id):
         self.competition_id = int(competition_id)
         sql = "SELECT count(*) as cnt FROM File WHERE competition_id = %d" %  self.competition_id
-        sqlResult = super().execSqlStatement(sql)
+        sqlResult = super().execSelectSqlStatement(sql)
         if int(sqlResult[0]['cnt']) != 0:
             self.execAllProcess()
 
     def execAllProcess(self):
         self.submissionList = self.getSubmissionList()
-        self.resultsAPI = self.submitAPIRequest()['result']
+        self.resultsAPI = self.submitAPIRequest()
         for submission in self.submissionList:
             id = submission['submission_id']
-            self.resultsAPI.get('id', id)
+            record = self.getValue(id, self.resultsAPI['result'])
 
-    def getValue(key, items):
-        values = [x['id'] for x in items if 'Key' in x and 'Value' in x and x['Key'] == key]
+            # 既存レコードのsubmission_id1件ごとに対して、そんざ
+            sql = "SELECT count(*) as cnt FROM SubmissionStatus WHERE submission_id = %d" % id
+            count = super().execSelectSqlStatement(sql)
+            print(count[0]['cnt'])
+            if(count[0]['cnt'] == 0):
+                print(record)
+                sql = "INSERT INTO SubmissionStatus (submission_id, verdict, timeConsumedMillis, memoryConsumedBytes) VALUES (%d, '%s' , %d, %d);" % (id, record['verdict'], record['timeConsumedMillis'], record['memoryConsumedBytes'])
+                super().execInsertSqlStatement(sql)
+                print('finish to insert record of %s' % id )
+            else: 
+                print('already exist record of %s' % id)
+
+    def getValue(self, id, items):
+        values = [x for x in items if 'id' in x and  x['id'] == id]
         return values[0] if values else None
 
 
@@ -67,7 +83,7 @@ class Problem(Connector):
     
     def getSubmissionList(self):
         sql = "select * from File WHERE competition_id = %d" % self.competition_id
-        return super().execSqlStatement(sql)
+        return super().execSelectSqlStatement(sql)
 
 def main():
     args = sys.argv
