@@ -132,7 +132,8 @@ def create_an_file_for_ngweight(problem_id):
                 f_ngweight.write(chr(3))
                 s = filter_cpp_comment(code_content)
                 # 特殊記号をとりあえず空白に変換する
-                processed_s = re.sub("\!|\?|\"|\'|#|\$|%|&|\||\(|\)|\{|\}|\[|\]|=|<|>|\+|-|\*|\/|\\|\~|\^|@|:|;|,|\.|\s+", " ", s)
+                # processed_s = re.sub("\!|\?|\"|\'|#|\$|%|&|\||\(|\)|\{|\}|\[|\]|=|<|>|\+|-|\*|\/|\\|\~|\^|@|:|;|,|\.|\s+", " ", s)
+                processed_s = re.sub("\s+", " ", s)
                 # 上記置換だと、改行・スペースのスペース変換による連続スペースが残るので、それらも一つのスペースにする
                 processed_s = re.sub(r" +", " ", processed_s)
                 f_ngweight.write(processed_s)
