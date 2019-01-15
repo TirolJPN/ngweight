@@ -87,7 +87,8 @@ int main(int argc, char* argv[]){
         //docid = atoi(s.c_str());
         c = *isit++;
       }
-      if (!isspace(c) && !ispunct(c)){
+      // if (!isspace(c) && !ispunct(c)){
+      if (!isspace(c)){
         word += tolower(c);
       } else{
         if (word.size() > 0){
